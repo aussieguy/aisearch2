@@ -1,0 +1,121 @@
+// Import all of Bootstrap
+@import "bootstrap/scss/bootstrap";
+
+@font-face {
+  font-family: Foundation-SemiBold;
+  src: url(FoundationTitlesHand-SemiBold-v0.85.ttf);
+}
+
+#apikey {
+//  font-family: sans-serif, 'Times New Roman', Arial;
+//  font-size: 20px;
+  width: 100%;
+  padding-left: 10px;  
+  padding-top: 10px;
+  padding-bottom: 9px;
+  margin-right: 10px;
+  margin-top: 9px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#aiR {
+  width: 100%;
+  padding-left: 10px;  
+  padding-top: 10px;
+  padding-bottom: 9px;
+  margin-top: 9px;
+  margin-left: 20px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#perplexity {
+  width: 100%;
+  padding-left: 10px;  
+  padding-top: 10px;
+  padding-bottom: 5px;
+  margin-top: 9px;
+  margin-left: 10px;
+  padding-right: 10px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+h1 {
+  padding-top: 80px;
+  font-family: Foundation-SemiBold;
+  color: darkgreen;
+}
+
+.container {
+  font-family: sans-serif, 'Times New Roman', Arial;
+  font-size: 18px;
+}
+
+.inputBox {
+  display: grid;    //Will align vertically.
+  justify-content: center;
+  align-items: center;
+}
+
+.inputBoxCustom {
+  display: flex;    //Will align horizontally.
+  margin-bottom: 3px;
+}
+
+.sunmoonPosition {
+  display: grid;
+  justify-content: left;
+}
+
+#outputBox {
+  display: grid;
+  overflow:scroll;
+  border-radius: 4px;
+  margin: 20px 20px;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-custom {
+//  height: 0px;
+//  margin-bottom: 10px;
+  margin-top: 0px;
+  margin-left: 200px;
+  margin-right: 200px;
+}
+
+.navbar-link {
+  font-size: larger;
+}
+
+.dark-mode {
+  background-color: black;
+  color: white;
+}
+
+.btn {
+  white-space: nowrap;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 10px;
+}
+
+
+//span.input:empty::before {
+//  content: "Go ahead, ask me anything";
+//}
+

@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ai search</title>
+    <link rel="stylesheet" href="scss/styles.scss">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> 
+  </head>
+
+  <body onload="cookies()">  <!-- Causes function cookies to be run -->
+    <script src="https://kit.fontawesome.com/2db9382108.js" crossorigin="anonymous"></script>   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <!-- Add in Navbar -->
+    <nav class="navbar fixed-top navbar-expand-lg">
+      <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="navbarScroll">
+          <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+          
+            <!-- Position sun moon icon -->      
+            <li class="nav-item">
+              <button type="button" class="btn btn-sm btn-dark" onclick="toggleMode()" id="modeButton" style="text-align: left">
+                <i class="fa-regular fa-moon fa-xl"></i>
+              </button>
+            </li>
+
+            <!-- API Key -->
+            <li class="nav-item">
+                <span class="input input-control-sm" onkeypress="enterApiKey(event)" id="apikey" contenteditable></span>
+            </li>
+
+            <!-- Link to perplexit.ai -->                       
+            <li class="nav-item">
+                <a class="navbar-link" id="perplexity" href="https://www.perplexity.ai/settings/api" >Obtain a new API key</a>
+            </li>
+
+            <!-- How AI will responsd -->
+            <li class="nav-item">
+                <span class="input input-control-sm" onkeypress="aiResponseKey(event)" id="aiR" contenteditable></span>
+            </li>
+
+          </ul>
+        </div>    
+      </div>
+    </nav>
+
+        <!-- Heading -->
+    <div class="inputBox">  
+      <h1>Go Ahead, Ask Me Anything</h1>        
+      
+        <!-- Input box -->
+      <div class="col inputBoxCustom">
+        <span autofocus class="input form-control input-control-lg bg-secondary-subtle" onkeypress="keyPressHandler(event)" role="textbox" contenteditable id="userInput"></span>
+      
+          <!-- AI model drop down menu -->
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            AI model
+          </button>
+          <ul class="dropdown-menu">
+            <li><button class="dropdown-item" onclick="sonarSmall()" type="button" id="sonar-small-chat">sonar-small-chat</button></li>
+            <li><button class="dropdown-item" onclick="sonarMedium()" type="button" id="sonar-medium-chat">sonar-medium-chat</button></li>
+            <li><button class="dropdown-item" onclick="codellama()" type="button" id="codellama-70b-instruct"><i class="fa-solid fa-check"></i> codellama-70b-instruct</button></li>
+            <li><button class="dropdown-item" onclick="mistral()" type="button" id="mistral-7b-instruct">mistral-7b-instruct</button></li>
+            <li><button class="dropdown-item" onclick="mixtral()" type="button" id="mixtral-8x7b-instruct">mixtral-8x7b-instruct</button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+      <!-- hidden button "Start new thread"-->
+      <div class="col mb-3" style="text-align: center;">    
+        <button type="button" class="btn btn-secondary border-dark" id="newThread" hidden onclick="newThread()">Start a new thread</button>      
+      </div>
+    
+      
+      <!-- Results from search are displayed here -->
+    <div id="outputBox"></div>   
+
+      <!-- hidden button "Follow up question"-->
+    <div class="col" style="text-align: center;">    
+      <button type="button" class="btn btn-secondary border-dark" id="followUpQuestion" hidden onclick="followUpQuestion()">Ask a follow-up question</button></div>
+    </div>
+      
+    <script type="text/javascript">
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////      
+      var previousResponse = ""; //For when there is a follow up question.  Keep track of the conversation.
+      var buttonFlag = "";       //Used to track new thread or follow up question button was pressed.
+      
+      var InputAPIKey = document.getElementById("apikey");  // API key text box.
+      var AIBehaviour = document.getElementById("aiR"); // How AI will respond text box.
+      
+      var apiKey = "";          //apiKey for accessing Perplexity API
+      var aiModel = "codellama-70b-instruct";           // The default AI model to use.
+      var previousAiModel = aiModel;
+      var responseText = "";  //How AI will respond.
+
+      //Set intial placeholder on page load.  
+      function cookies() {   
+        //Retrieve cookies.
+        apiKey = window.localStorage.getItem("apikey");
+        responseText = window.localStorage.getItem("airesponse");
+
+        //Display the API key.
+        if (apiKey == "") {
+          apiKey = "API key required";
+        }
+        InputAPIKey.textContent = "API key: " + apiKey;
+
+        //Display AI Response text box.
+        if (responseText.length == 0) {
+          responseText = "How would you like the AI to respond, eg. be precise and concise.";
+        }
+        AIBehaviour.textContent = "AI is to be: " + responseText;        
+      }
+      
+      //Triggered when user types in the API key box.
+      function enterApiKey(event) {
+        apiKey = InputAPIKey.innerHTML;
+
+        if (event.key == "Enter"){    //Save on enter otherwise do nothing.  
+          window.localStorage.setItem("apikey",apiKey);   
+          location.reload();    //Refresh the page.       
+        }
+      }
+
+      //Triggered when user types in the AiResponse box.
+      function aiResponseKey(event) {
+        responseText = AIBehaviour.innerHTML;
+
+        if (event.key == "Enter"){    //Save on enter otherwise do nothing.  
+          window.localStorage.setItem("airesponse",responseText);   
+          location.reload();    //Refresh the page.               
+        }
+      }
+
+      //Set the AI model to use.
+      function sonarSmall() {
+        aiModel = "sonar-small-chat";
+        setAIModel(aiModel); 
+      }
+      function sonarMedium() {
+        aiModel = "sonar-medium-chat";
+        setAIModel(aiModel); 
+      }
+      function codellama() {
+        aiModel = "codellama-70b-instruct";
+        setAIModel(aiModel); 
+      }
+      function mistral() {
+        aiModel = "mistral-7b-instruct";
+        setAIModel(aiModel); 
+      }
+      function mixtral() {
+        aiModel = "mixtral-8x7b-instruct"; 
+        setAIModel(aiModel); 
+      }
+
+      //Configure the AI model dropdown menu to show a check beside option chosen.
+      function setAIModel(aiModel) {
+        var buttonAIModel = document.getElementById(aiModel);
+        buttonAIModel.innerHTML = '<i class="fa-solid fa-check"></i>' + " " + aiModel;
+        
+        //Clear check from previous chosen AI model.  Remove fa-check.
+        var buttonAIModel = document.getElementById(previousAiModel);
+        buttonAIModel.innerHTML = previousAiModel;
+
+        //Set new previousAIModel.
+        previousAiModel = aiModel;
+      }
+
+      //Switch between light and dark modes.
+      function toggleMode() {
+        //Switch background color
+        const body = document.body;
+        body.classList.toggle('dark-mode');
+
+        //Switch the button.
+        const myButton = document.getElementById('modeButton');
+        const navbar = document.getElementById('bottomNavbar');
+
+        if (myButton.innerHTML.includes("fa-moon")) {
+
+          //Switch to sun button
+          myButton.innerHTML = '<i class="fa-regular fa-sun fa-xl"></i>'; 
+
+          myButton.classList.remove("btn-dark");
+          myButton.classList.add("btn-outline-warning");
+        } else {
+
+          //Switch to moon button
+          myButton.innerHTML = '<i class="fa-regular fa-moon fa-xl"></i>';
+
+          myButton.classList.remove("btn-outline-warning");
+          myButton.classList.add("btn-dark");
+        }
+      }
+
+      //Triggered when user clicks on the 'New thread' button.
+      function newThread() {
+        //Clear all previous conversations and set flag to indicate this button was clicked.
+        previousResponse = "";
+        buttonFlag = "";    
+
+        //Clear the input text box of what the user had typed before. Clear the output box as well.
+        var userInput = document.getElementById("userInput");
+        userInput.innerHTML = "";
+
+        var outputBox = document.getElementById("outputBox");
+        outputBox.innerHTML = "";
+        outputBox.style.border = 'none';      //Remove border as there is no text.
+        
+        //Reenable user input.
+        var userInput = document.getElementById("userInput");
+        userInput.contentEditable = true;
+
+        //Hide other buttons.
+        const newThreadButton = document.getElementById("newThread");          
+        newThreadButton.setAttribute("hidden","hidden");
+        const followUpQuestionButton = document.getElementById("followUpQuestion");
+        followUpQuestionButton.setAttribute("hidden","hidden");
+      }
+
+      //Triggered when user clicks on 'Follow up question' button.
+      function followUpQuestion() {
+
+        //Set the flag to indicate that the user has clicked on the 'Follow up question' button.
+        buttonFlag = "followUp";
+
+        //Set the input field to be ready for the next question.
+        var userInput = document.getElementById("userInput");
+        userInput.innerHTML = "";    
+        userInput.contentEditable = true;
+
+       //Hide follow up question button.
+        const followUpQuestionButton = document.getElementById("followUpQuestion");
+        followUpQuestionButton.setAttribute("hidden","hidden");
+      }
+
+      //Triggered when the user presses a key.
+      function keyPressHandler(event) {
+          
+      //Check if user has pressed the enter key.
+        if (event.key == "Enter"){          
+
+          //Stop user from entering text.
+          var userInput = document.getElementById("userInput");
+          userInput.contentEditable = false;
+
+          //Display new thread button.
+          const newThreadButton = document.getElementById("newThread");          
+          newThreadButton.removeAttribute("hidden");
+
+          //Check if this is a follow up question.  If it is then include the previous question.
+          var conversation = "";
+          if (buttonFlag == "followUp") {            
+            conversation = previousResponse + userInput.innerHTML;
+          } else {
+            conversation = userInput.innerHTML;
+          }
+
+          //Submit question from user to AI
+          submit2AI(conversation,apiKey,responseText);
+        }
+      }
+
+      //Send what user typed to perplexity ai.
+      function submit2AI(userInput,apiKey,responseText) {
+        //userInput = Question typed in by user.
+        //apiKey = The API key to be used.
+        //responseText = How the AI is to respond.
+        var results2BeDisplayed;
+        console.log("apiKey: " + apiKey);
+
+        //Check if there is an API key and only proceed if there is.
+        if (apikey != "API key required") {
+
+          //Save this copy of responseText.
+          if (responseText == "How would you like the AI to respond, eg. be precise and concise.") {
+            copyOfResponseText = responseText;
+            responseText = "Be precise and concise.";
+          }
+
+          const options = {
+            method: 'POST',
+            headers: {
+              accept: 'application/json',
+              'content-type': 'application/json',
+              authorization: "Bearer " + apiKey
+            },
+            body: JSON.stringify({
+              model: aiModel,
+              messages: [
+//                {role: 'system', content: 'Be precise and concise.'},
+                {role: 'system', content: `${responseText}`},
+                {role: 'user', content: `${userInput}`}
+              ]
+            })
+          };          
+
+          //Fetch is a promise and we can only access the object returned via the .then statement          
+          fetch('https://api.perplexity.ai/chat/completions', options)
+            .then(response => response.json())                //Conver to JSON.
+            .then(function(response) {
+              //Display results in textbox.
+              results2BeDisplayed = response.choices[0].message.content;
+              displayResults(results2BeDisplayed);
+          });
+        } else {
+          console.log("We are here");
+          results2BeDisplayed = "Missing API key.  Make sure you have obtained an API key from the Perplexity website before entering any searches."
+          displayResults(results2BeDisplayed);
+        }
+        //Restore responseText
+        if (responseText == "Be precise and concise.") {
+            responseText = copyOfResponseText;
+          }
+
+      }      
+
+      //Generate a new text box and display the results in it.
+      function displayResults(results2BeDisplayed) {
+        var results2BeDisplayed;
+        const newDiv = document.createElement("div");                    
+          newDiv.style.border = '2px solid grey';   
+          newDiv.style.borderRadius = '5px';  
+          newDiv.style.marginBottom = '5px';
+ 
+              // Build on the previous responses which is used for follow up questions.
+          newDiv.innerHTML = "\n" + results2BeDisplayed + "\n";
+          previousResponse = newDiv.innerHTML;              
+              
+              //Display the new div.
+          const parentDiv = document.getElementById("outputBox");          
+          parentDiv.appendChild(newDiv);    
+              
+              //Display the follow up question button (by removing its hidden attribute).
+          const followUpQuestionButton = document.getElementById("followUpQuestion");
+          followUpQuestionButton.removeAttribute("hidden");
+      }
+
+    </script>
+  </body>
+</html>
